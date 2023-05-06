@@ -1,0 +1,168 @@
+import tkinter as tk
+import pickle
+import os.path
+from tkinter import messagebox
+class Employee:
+    def __init__(self, employeeName, age, gender, dateOfBirth, passportNumber, employeeIdNumber, department, jobTitle, basicSalary):
+        self.employeeName = employeeName
+        self.age= age
+        self.gender= gender
+        self.dateOfBirth= dateOfBirth
+        self.passportNumber= passportNumber
+        self.employeeIdNumber = employeeIdNumber
+        self.department = department
+        self.jobTitle = jobTitle
+        self.basicSalary = basicSalary
+
+class Company:
+    def __init__(self, companyName):
+        self.companyName = companyName
+        self.employees = []
+
+class Application():
+    def __init__(self, master):
+        self.master = master
+        self.master.title("B&M Company Management System")
+        self.master.geometry("400x400")
+        tk.Label(self.master, text="Employee Management").grid(row=0, column=0)
+        tk.Label(self.master, text="Employee Name").grid(row=1, column=0)
+        tk.Label(self.master, text=" Age").grid(row=2, column=0)
+        tk.Label(self.master, text=" Gender").grid(row=3, column=0)
+        tk.Label(self.master, text=" Date Of Birth").grid(row=4, column=0)
+        tk.Label(self.master, text="Passport Number").grid(row=5, column=0)
+        tk.Label(self.master, text="Employee ID").grid(row=6, column=0)
+        tk.Label(self.master, text="Department").grid(row=7, column=0)
+        tk.Label(self.master, text="Job Title").grid(row=8, column=0)
+        tk.Label(self.master, text="Basic Salary").grid(row=9, column=0)
+        self.employeeNameEntry = tk.Entry(self.master)
+        self.ageEntry = tk.Entry(self.master)
+        self.genderEntry = tk.Entry(self.master)
+        self.dateOfBirthEntry = tk.Entry(self.master)
+        self.passportNumberEntry = tk.Entry(self.master)
+        self.employeeIdNumberEntry = tk.Entry(self.master)
+        self.departmentEntry = tk.Entry(self.master)
+        self.jobTitleEntry = tk.Entry(self.master)
+        self.basicSalaryEntry = tk.Entry(self.master)
+        self.employeeNameEntry.grid(row=1, column=1)
+        self.ageEntry.grid(row=2, column=1)
+        self.genderEntry.grid(row=3, column=1)
+        self.dateOfBirthEntry.grid(row=4, column=1)
+        self.passportNumberEntry.grid(row=5, column=1)
+        self.employeeIdNumberEntry.grid(row=6, column=1)
+        self.departmentEntry.grid(row=7, column=1)
+        self.jobTitleEntry.grid(row=8, column=1)
+        self.basicSalaryEntry.grid(row=9, column=1)
+        tk.Button(self.master, text="Add Employee", command=self.addEmployee).grid(row=10, column=0)
+        tk.Button(self.master, text="Delete Employee", command=self.deleteEmployee).grid(row=10, column=1)
+        tk.Button(self.master, text="Modify Employee", command=self.modifyEmployee).grid(row=10, column=2)
+
+    def addEmployee(self):
+        employeeName = self.employeeNameEntry.get()
+        age = self.ageEntry.get()
+        gender = self.genderEntry.get()
+        dateOfBirth = self.dateOfBirthEntry.get()
+        passportNumber = self.passportNumberEntry.get()
+        employeeIdNumber = int(self.employeeIdNumberEntry.get())
+        department = self.departmentEntry.get()
+        jobTitle = self.jobTitleEntry.get()
+        basicSalary = self.basicSalaryEntry.get()
+
+        employee = Employee(employeeName, age, gender, dateOfBirth, passportNumber, employeeIdNumber, department, jobTitle, basicSalary)
+        try:
+            with open('employees.bin','rb') as f:
+                if os.path.getsize('employees.bin') > 0:
+                    company = pickle.load(f)
+                else:
+                    company = Company("ABC Company")
+        except FileNotFoundError:
+            company = Company("ABC Company")
+
+
+        company.employees.append(employee)
+        with open('employees.bin', 'wb') as f:
+            pickle.dump(company, f)
+
+        self.employeeNameEntry.delete(0, tk.END)
+        self.ageEntry.delete(0, tk.END)
+        self.genderEntry.delete(0, tk.END)
+        self.dateOfBirthEntry.delete(0, tk.END)
+        self.passportNumberEntry.delete(0, tk.END)
+        self.employeeIdNumberEntry.delete(0, tk.END)
+        self.departmentEntry.delete(0, tk.END)
+        self.jobTitleEntry.delete(0, tk.END)
+        self.basicSalaryEntry.delete(0, tk.END)
+        # Create and add success message label
+        success_label = tk.Label(self.master, text="Employee added successfully!")
+        success_label.grid(row=11, column=0, columnspan=2)
+    def deleteEmployee(self):
+        employeeIdNumber = int(self.employeeIdNumberEntry.get())
+        # Load existing employees
+        try:
+            with open('employees.bin', 'rb') as f:
+                company = pickle.load(f)
+        except FileNotFoundError:
+            tk.messagebox.showinfo("Error", "No employees found")
+            return
+
+        # Find employee with matching ID and remove from list
+        found = False
+        for i, employee in enumerate(company.employees):
+            if employee.employeeIdNumber == employeeIdNumber:
+                del company.employees[i]
+                found = True
+                break
+
+        # Save updated employee list
+        with open('employees.bin', 'wb') as f:
+            pickle.dump(company, f)
+        # Clear input field
+        self.employeeIdNumberEntry.delete(0, tk.END)
+        # Show result message
+        if found:
+            tk.messagebox.showinfo("Success", f"Employee with ID {employeeIdNumber} deleted")
+        else:
+            tk.messagebox.showinfo("Error", f"No employee with ID {employeeIdNumber} found")
+
+    def modifyEmployee(self):
+        # Get employee ID to modify
+        employeeIdNumber = int(input("Enter employee ID to modify: "))
+
+        # Load existing employees
+        try:
+            with open('employees.bin', 'rb') as f:
+                company = pickle.load(f)
+        except FileNotFoundError:
+            print("No employees found.")
+            return
+
+        # Find employee by ID
+        found_employee = False
+        for employee in company.employees:
+            if employee.employeeIdNumber == employeeIdNumber:
+                found_employee = True
+                # Modify employee details
+                print("Current details:")
+                print(f"Name: {employee.employeeName}, Age: {employee.age}, , Gender: {employee.gender}, dateOfBirth: {employee.dateOfBirth}, passportNumber: {employee.passportNumber}, ID :{employeeIdNumber},Department: {employee.department},jobTitle: {employee.jobTitle},basicSalary: {employee.basicSalary}")
+                employee.employeeName = input(
+                    "Enter new name (leave blank to keep current name): ") or employee.employeeName
+                employee.age = int(input("Enter new age (leave blank to keep current age): ") or employee.age)
+                employee.gender = input("Enter new gender (leave blank to keep current gender): ") or employee.gender
+                employee.dateOfBirth = input("Enter new dateOfBirth (leave blank to keep current dateOfBirth): ") or employee.dateOfBirth
+                employee.passportNumber = int(input("Enter new passportNumber (leave blank to keep current passportNumber): ") or employee.passportNumber)
+                employee.employeeIdNumber = int(
+                    input("Enter new ID (leave blank to keep current ID): ") or employee.employeeIdNumber)
+                employee.department = input("Enter new department (leave blank to keep current department): ") or employee.department
+                employee.jobTitle = input("Enter new jobTitle (leave blank to keep current jobTitle): ") or employee.jobTitle
+                employee.basicSalary = float(input("Enter new basicSalary (leave blank to keep current basicSalary): ") or employee.basicSalary)
+
+                break
+        # Save updated employee list
+        with open('employees.bin', 'wb') as f:
+            pickle.dump(company, f)
+
+        if not found_employee:
+            print("Employee not found.")
+
+root = tk.Tk()
+app = Application(root)
+root.mainloop()
